@@ -139,15 +139,15 @@ class SmppTest(TestCase):
         
     def _serv_pdu(self, protocol, pdu, type):
         log.msg("serv_pdu type %s protocol %s pdu %s" % (type, repr(protocol), repr(pdu)))
-        if type == 'valuable' and pdu['header']['command_id'].startswith('bind'):
-            resp = BindResp(command_id = pdu['header']['command_id']+'_resp', 
-                            command_status = 'ESME_ROK', 
-                            sequence_number = int(pdu['header']['sequence_number'])).obj
-            protocol.smmpRespPduSend(resp)
-        if type == 'valuable' and pdu['header']['command_id'] == 'unbind':
-            resp = UnbindResp(command_status = 'ESME_ROK', 
-                            sequence_number = int(pdu['header']['sequence_number'])).obj
-            protocol.smmpRespPduSend(resp)
+#        if type == 'valuable' and pdu['header']['command_id'].startswith('bind'):
+#            resp = BindResp(command_id = pdu['header']['command_id']+'_resp', 
+#                            command_status = 'ESME_ROK', 
+#                            sequence_number = int(pdu['header']['sequence_number'])).obj
+#            protocol.smmpRespPduSend(resp)
+#        if type == 'valuable' and pdu['header']['command_id'] == 'unbind':
+#            resp = UnbindResp(command_status = 'ESME_ROK', 
+#                            sequence_number = int(pdu['header']['sequence_number'])).obj
+#            protocol.smmpRespPduSend(resp)
 
     
     def setUp(self):
