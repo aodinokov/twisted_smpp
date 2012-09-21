@@ -13,10 +13,9 @@ class SmppGenericUt(SmppGeneric):
     def connectionLost(self, reason):
         self.factory.protocolConnectionLost(self, reason)
         SmppGeneric.connectionLost(self, reason)
-    def smmpCantParseInput(self, data):
-        self.factory.protocolCantParseInput(self, data)
-    def smmpIcorrectPduCommandId(self, pdu):
-        self.factory.protocolIcorrectPduCommandId(self, pdu)
+    def unexpectedError(self, reason):
+        self.factory.protocolUnexpectedError(self, reason)
+        SmppGeneric.unexpectedError(self, reason)
     def smppValuablePduReceived(self, pdu):
         self.factory.protocolValuablePduReceived(self, pdu)
         SmppGeneric.smppValuablePduReceived(self, pdu)
@@ -35,7 +34,7 @@ class SmppServerFactoryUt(ServerFactory):
     def __init__(self,
                  protocolConnectionMadeCallback = None, protocolConnectionMadeCallbackKArgs = {},
                  protocolConnectionLostCallback = None, protocolConnectionLostCallbackKArgs = {},
-                 protocolCantParseInputCallback = None, protocolCantParseInputCallbackKArgs = {},
+                 protocolUnexpectedErrorCallback = None, protocolUnexpectedErrorCallbackKArgs = {},
                  protocolIcorrectPduCommandIdCallback = None, protocolIcorrectPduCommandIdCallbackKArgs = {},
                  protocolValuablePduReceivedCallback = None, protocolValuablePduReceivedCallbackKArgs = {},
                  protocolRespPduReceivedCallback = None, protocolRespPduReceivedCallbackKArgs = {}
@@ -44,8 +43,8 @@ class SmppServerFactoryUt(ServerFactory):
         self.protocolConnectionMadeCallbackKArgs = protocolConnectionMadeCallbackKArgs
         self.protocolConnectionLostCallback = protocolConnectionLostCallback
         self.protocolConnectionLostCallbackKArgs = protocolConnectionLostCallbackKArgs
-        self.protocolCantParseInputCallback = protocolCantParseInputCallback
-        self.protocolCantParseInputCallbackKArgs = protocolCantParseInputCallbackKArgs
+        self.protocolUnexpectedErrorCallback = protocolUnexpectedErrorCallback
+        self.protocolUnexpectedErrorCallbackKArgs = protocolUnexpectedErrorCallbackKArgs
         self.protocolIcorrectPduCommandIdCallback = protocolIcorrectPduCommandIdCallback
         self.protocolIcorrectPduCommandIdCallbackKArgs = protocolIcorrectPduCommandIdCallbackKArgs
         self.protocolValuablePduReceivedCallback = protocolValuablePduReceivedCallback
@@ -59,12 +58,9 @@ class SmppServerFactoryUt(ServerFactory):
     def protocolConnectionLost(self, protocol, reason):
         if self.protocolConnectionLostCallback:
             self.protocolConnectionLostCallback(protocol, reason, **self.protocolConnectionLostCallbackKArgs)
-    def protocolCantParseInput(self, protocol, data):
-        if self.protocolCantParseInputCallback:
-            self.protocolCantParseInputCallback(protocol, data, **self.protocolCantParseInputCallbackKArgs)
-    def protocolIcorrectPduCommandId(self, protocol, pdu):
-        if self.protocolIcorrectPduCommandIdCallback:
-            self.protocolIcorrectPduCommandIdCallback(protocol, pdu, **self.protocolIcorrectPduCommandIdCallbackKArgs)
+    def protocolUnexpectedError(self, protocol, reason):
+        if self.protocolUnexpectedErrorCallback:
+            self.protocolUnexpectedErrorCallback(protocol, reason, **self.protocolUnexpectedErrorCallbackKArgs)
     def protocolValuablePduReceived(self, protocol, pdu):
         if self.protocolValuablePduReceivedCallback:
             self.protocolValuablePduReceivedCallback(protocol, pdu, **self.protocolValuablePduReceivedCallbackKArgs)
@@ -90,10 +86,8 @@ class SmppTest(TestCase):
                                                protocolConnectionMadeCallback = self._serv_protocol,
                                                protocolConnectionLostCallback = self._serv_error,
                                                protocolConnectionLostCallbackKArgs = {"error":"connectionLost"},
-                                               protocolCantParseInputCallback = self._serv_error,
-                                               protocolCantParseInputCallbackKArgs = {"error":"cantParseInput"},
-                                               protocolIcorrectPduCommandIdCallback = self._serv_error,
-                                               protocolIcorrectPduCommandIdCallbackKArgs = {"error":"incorrectPduCommandId"},
+                                               protocolUnexpectedErrorCallback = self._serv_error,
+                                               protocolUnexpectedErrorCallbackKArgs = {"error":"cantParseInput"},
                                                protocolValuablePduReceivedCallback = self._serv_pdu,
                                                protocolValuablePduReceivedCallbackKArgs = {"type":"valuable"},
                                                protocolRespPduReceivedCallback = self._serv_pdu,

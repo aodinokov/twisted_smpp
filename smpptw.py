@@ -9,9 +9,9 @@ from twisted.python import log
 
 #TO Fix: 
 #1. only version 34
-# !!!fixed!!! 2. internal packet filter can fail(incorrect current state) 
-#3. problems with error handling during session (we need one function with Failure instead of many)
-#4. client and server factories are too complicated
+#!!!fixed!!! 2. internal packet filter can fail(incorrect current state) 
+#!!!fixed!!! 3. problems with error handling during session (we need one function with Failure instead of many)
+#!!!fixed!!! 4. client and server factories are too complicated
 #!!!fixed(check one place now)!!!5. probably we have some problems with sequence_number
 #6. Pdu_builder is not fit very much
 #!!!fixed!!!7. add default timeout
@@ -41,6 +41,7 @@ class SmppGeneric(Protocol):
         if len(self.data) < 4:
             return
         pdu_len = int(binascii.b2a_hex(self.data[0:4]), 16)
+        #TODO: check pdu_len (it's possible to 0xff^4 and we get 4Gb of mem - it's not correct)
         if len(self.data) < pdu_len:
             log.msg("data is not enought %s < %s", (str(len(self.data)), str(pdu_len)))
             return
