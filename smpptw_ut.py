@@ -1,8 +1,7 @@
 
 from smpptw import *
-#from smpp.pdu_builder import *
 
-from twisted.internet.protocol import ClientFactory, ServerFactory
+from twisted.internet.protocol import ClientCreator, ServerFactory
 from twisted.trial.unittest import TestCase
 from twisted.internet import reactor
 from twisted.internet.defer import Deferred, inlineCallbacks, returnValue
@@ -25,64 +24,10 @@ class SmppGenericUt(SmppGeneric):
         self.factory.protocolRespPduReceived(self, pdu)
         SmppGeneric.smppRespPduReceived(self, pdu)
 
-class SmppEcmeUt(SmppGenericUt):
+class SmppEcmeUt(SmppGeneric):
     smppTuneEsme()
-    #pass #prblems with state change
 class SmppSmscUt(SmppGenericUt):
     smppTuneSmsc()
-    #pass
-
-# TODO: DRY????
-class SmppClientFactoryUt(ClientFactory):
-    protocol = SmppEcmeUt
-    
-    def __init__(self,
-                 clientConnectionFailedCallback = None, clientConnectionFailedCallbackKArgs = {},
-                 protocolConnectionMadeCallback = None, protocolConnectionMadeCallbackKArgs = {}, 
-                 protocolConnectionLostCallback = None, protocolConnectionLostCallbackKArgs = {},
-                 protocolCantParseInputCallback = None, protocolCantParseInputCallbackKArgs = {},
-                 protocolIcorrectPduCommandIdCallback = None, protocolIcorrectPduCommandIdCallbackKArgs = {},
-                 protocolValuablePduReceivedCallback = None, protocolValuablePduReceivedCallbackKArgs = {},
-                 protocolRespPduReceivedCallback = None, protocolRespPduReceivedCallbackKArgs = {}
-                 ):
-        self.clientConnectionFailedCallback = clientConnectionFailedCallback
-        self.clientConnectionFailedCallbackKArgs = clientConnectionFailedCallbackKArgs
-        self.protocolConnectionMadeCallback = protocolConnectionMadeCallback
-        self.protocolConnectionMadeCallbackKArgs = protocolConnectionMadeCallbackKArgs
-        self.protocolConnectionLostCallback = protocolConnectionLostCallback
-        self.protocolConnectionLostCallbackKArgs = protocolConnectionLostCallbackKArgs
-        self.protocolCantParseInputCallback = protocolCantParseInputCallback
-        self.protocolCantParseInputCallbackKArgs = protocolCantParseInputCallbackKArgs
-        self.protocolIcorrectPduCommandIdCallback = protocolIcorrectPduCommandIdCallback
-        self.protocolIcorrectPduCommandIdCallbackKArgs = protocolIcorrectPduCommandIdCallbackKArgs
-        self.protocolValuablePduReceivedCallback = protocolValuablePduReceivedCallback
-        self.protocolValuablePduReceivedCallbackKArgs = protocolValuablePduReceivedCallbackKArgs
-        self.protocolRespPduReceivedCallback = protocolRespPduReceivedCallback
-        self.protocolRespPduReceivedCallbackKArgs = protocolRespPduReceivedCallbackKArgs
-    
-    def clientConnectionFailed(self, connector, reason):
-        if self.clientConnectionFailedCallback:
-            self.clientConnectionFailedCallback(connector, reason, **self.clientConnectionFailedCallbackKArgs)
-    def protocolConnectionMade(self, protocol):
-        if self.protocolConnectionMadeCallback:
-            self.protocolConnectionMadeCallback(protocol, **self.protocolConnectionMadeCallbackKArgs)
-    def protocolConnectionLost(self, protocol, reason):
-        if self.protocolConnectionLostCallback:
-            self.protocolConnectionLostCallback(protocol, reason, **self.protocolConnectionLostCallbackKArgs)
-    def protocolCantParseInput(self, protocol, data):
-        if self.protocolCantParseInputCallback:
-            self.protocolCantParseInputCallback(protocol, data, **self.protocolCantParseInputCallbackKArgs)
-    def protocolIcorrectPduCommandId(self, protocol, pdu):
-        if self.protocolIcorrectPduCommandIdCallback:
-            self.protocolIcorrectPduCommandIdCallback(protocol, pdu, **self.protocolIcorrectPduCommandIdCallbackKArgs)
-    def protocolValuablePduReceived(self, protocol, pdu):
-        if self.protocolValuablePduReceivedCallback:
-            self.protocolValuablePduReceivedCallback(protocol, pdu, **self.protocolValuablePduReceivedCallbackKArgs)
-    def protocolRespPduReceived(self, protocol, pdu):
-        if self.protocolRespPduReceivedCallback:
-            self.protocolRespPduReceivedCallback(protocol, pdu, **self.protocolRespPduReceivedCallbackKArgs)
-
-#def smppSend
 
 class SmppServerFactoryUt(ServerFactory):
     protocol = SmppSmscUt
@@ -139,16 +84,6 @@ class SmppTest(TestCase):
         
     def _serv_pdu(self, protocol, pdu, type):
         log.msg("serv_pdu type %s protocol %s pdu %s" % (type, repr(protocol), repr(pdu)))
-#        if type == 'valuable' and pdu['header']['command_id'].startswith('bind'):
-#            resp = BindResp(command_id = pdu['header']['command_id']+'_resp', 
-#                            command_status = 'ESME_ROK', 
-#                            sequence_number = int(pdu['header']['sequence_number'])).obj
-#            protocol.smmpRespPduSend(resp)
-#        if type == 'valuable' and pdu['header']['command_id'] == 'unbind':
-#            resp = UnbindResp(command_status = 'ESME_ROK', 
-#                            sequence_number = int(pdu['header']['sequence_number'])).obj
-#            protocol.smmpRespPduSend(resp)
-
     
     def setUp(self):
         self.serverFactory = SmppServerFactoryUt(
@@ -174,44 +109,14 @@ class SmppTest(TestCase):
         self.serverFactory = None
         return port.stopListening()
     
+    @inlineCallbacks
     def test_smoke_1(self):
-
-        def connected(protocol):
-            de = work(protocol)
-            return de
-
-        d = Deferred()
-        d.addCallback(connected)
-
-        def onConnect(protocol):
-            log.msg("onConnect")
-            d.callback(protocol)
-        def onConnectFailure(connector, reason):
-            log.msg("onConnectFailure")
-            d.errback(reason)
-        
-        @inlineCallbacks
-        def work(protocol):
-            try:
-                pdu = BindTransmitter(1).obj
-                log.msg("created pdu %s" % (repr(pdu),))
-                pdu = yield protocol.smmpValuablePduSendAndWaitResp(pdu)
-                log.msg("got pdu %s" % (repr(pdu),))
-                pdu = yield protocol.unbind()
-                log.msg("unbinded")
-            except Exception as e:
-                log.msg("got exception %s" % (repr(e),))
-                import sys
-                import traceback
-                x = sys.exc_info()
-                log.msg("x %s" % (repr(traceback.format_tb(x[2])),))
-                returnValue(e)
-            returnValue(pdu)
-        
-        log.msg("test_smoke_1")
-        clientFactory = SmppClientFactoryUt(protocolConnectionMadeCallback = onConnect,
-                                            clientConnectionFailedCallback = onConnectFailure)
-        reactor.connectTCP("127.0.0.1", self.portnum, clientFactory)
-        log.msg("connect")
-        
-        return d
+        creator = ClientCreator(reactor, SmppEcmeUt)
+        protocol = yield creator.connectTCP("127.0.0.1", self.portnum)
+        pdu = BindTransmitter(1).obj
+        log.msg("created pdu %s" % (repr(pdu),))
+        pdu = yield protocol.smmpValuablePduSendAndWaitResp(pdu)
+        log.msg("got pdu %s" % (repr(pdu),))
+        pdu = yield protocol.unbind()
+        log.msg("unbinded")
+        returnValue(pdu)

@@ -34,7 +34,7 @@ class SmppGeneric(Protocol):
         self.sequence_number_rx_resp = 0
         # todo: not implemented
         self.interface_version = 34
-            
+
     def dataReceived(self, data):
         log.msg("data is received %s" % (repr(data),))
         self.data += data
@@ -51,22 +51,10 @@ class SmppGeneric(Protocol):
         pdu = unpack_pdu(cur_data)
         if pdu == None:
             log.msg("can't parse SMPP")
-            self.smmpCantParseInputData(cur_data)
+            self.unexpectedError(Failure(Exception("can't parse SMPP {}".format(repr(cur_data)))))
         else: 
             log.msg("got SMPP PDU")
             self.smppPduReceived(pdu)
-     
-    def smmpCantParseInput(self, data):
-        pass
-
-    def smmpIcorrectPduCommandId(self, pdu):
-        pass
-
-    def _canBeIssuedByHost(self, pdu):
-        return True
-
-    def _canBeIssuedByPeer(self, pdu):
-        return True
 
     # low level interface    
     def smmpPduSend(self, pdu):        
@@ -74,19 +62,20 @@ class SmppGeneric(Protocol):
 
     def smppPduReceived(self, pdu):
         if not (self._canBeIssuedByPeer(pdu)):
-            return self.smmpIcorrectPduCommandId(pdu)
-            
+            self.unexpectedError(Failure(Exception("Incorrect input Pdu Id {}".format(repr(pdu)))))
+            return
         sequence_number = int(pdu['header']['sequence_number'])
         if not SmppGeneric._isRespPdu(pdu):
             if not (sequence_number == SmppGeneric._nextSequenceNumber(self.sequence_number_rx)):
                 log.msg("incorrect sequence_number")
-                #notify
+                self.unexpectedError(Failure(Exception("Incorrect input sequence_number {}".format(sequence_number))))
             else:
                 self.sequence_number_rx = sequence_number 
                 self.smppValuablePduReceived(pdu)
         else:
             if not (sequence_number == SmppGeneric._nextSequenceNumber(self.sequence_number_tx_resp)):
                 log.msg("incorrect sequence_number")
+                self.unexpectedError(Failure(Exception("Incorrect input response sequence_number {}".format(sequence_number))))
             else:
                 self.sequence_number_tx_resp = sequence_number
                 if sequence_number in self.waiting_valuable:
@@ -142,7 +131,7 @@ class SmppGeneric(Protocol):
                 except Exception as e:
                     d.errback(e)
             return res
-        log.msg("queueing SMPP PDU resp")
+        log.msg("queue-ing SMPP PDU resp")
         d = Deferred()
         self.waiting_resp[pdu['header']['sequence_number']] = (pdu, d)
         return d 
@@ -161,14 +150,12 @@ class SmppGeneric(Protocol):
         pass
 
     # high level interface
-    def loseConnection(self, arg=None):
-        """ forced connection loss (without unbind)
+    def unexpectedError(self, reason):
+        """ It's possible to get here all unexpected input errors
         """
-        log.msg("loseConnection arg %s" % (repr(arg)))
-        self._newState('CLOSED')
-        self.transport.loseConnection(arg)
-        return arg
-
+        log.msg("connectionLost arg %s" % (reason,))
+        self.loseConnection()
+    
     def connectionLost(self, reason):
         """ forced connection loss (without unbind) from peer side
         """
@@ -178,6 +165,14 @@ class SmppGeneric(Protocol):
             self._newState('CLOSED')
         
         self._errbackAllWaiting(reason)
+
+    def loseConnection(self, arg=None):
+        """ forced connection loss (without unbind)
+        """
+        log.msg("loseConnection arg %s" % (repr(arg)))
+        self._newState('CLOSED')
+        self.transport.loseConnection(arg)
+        return arg
 
     def unbind(self, pdu=None):
         """ soft protocol shutdown
@@ -220,7 +215,6 @@ class SmppGeneric(Protocol):
             raise Exception("invalid resp sequence_number")                         
         d = self.smmpRespPduSend(pdu_resp)
         d.addBoth(self.transport.loseConnection)
-        
 
     def bind(self, pdu):
         """
@@ -286,6 +280,9 @@ class SmppGeneric(Protocol):
         d.addCallback(onSent)
         d.addErrback(onError)
         return d
+    
+    def onOtherPdu(self, pdu):
+        pass
 
     #helpers    
     def _errbackAllWaiting(self, arg):
@@ -406,6 +403,13 @@ class SmppGeneric(Protocol):
                 'enquire_link_resp',
                 'alert_notification',
                 'generic_nack',]
+
+    def _canBeIssuedByHost(self, pdu):
+        return True
+
+    def _canBeIssuedByPeer(self, pdu):
+        return True
+
 
 def smppTuneEsme():
     def _canBeSentByHost(self, pdu):
