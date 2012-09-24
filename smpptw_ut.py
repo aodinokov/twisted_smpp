@@ -87,7 +87,7 @@ class SmppTest(TestCase):
                                                protocolConnectionLostCallback = self._serv_error,
                                                protocolConnectionLostCallbackKArgs = {"error":"connectionLost"},
                                                protocolUnexpectedErrorCallback = self._serv_error,
-                                               protocolUnexpectedErrorCallbackKArgs = {"error":"cantParseInput"},
+                                               protocolUnexpectedErrorCallbackKArgs = {"error":"unexpectedError"},
                                                protocolValuablePduReceivedCallback = self._serv_pdu,
                                                protocolValuablePduReceivedCallbackKArgs = {"type":"valuable"},
                                                protocolRespPduReceivedCallback = self._serv_pdu,
