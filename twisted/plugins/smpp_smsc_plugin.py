@@ -1,4 +1,5 @@
 import uuid
+import json
 
 from zope.interface import implements
 
@@ -30,12 +31,18 @@ class SmppServerNodeCtrlProtocol(AMQClient):
                            spec = txamqp.spec.load(spec))
     
     @inlineCallbacks
+    def _declare_queue_rx(self):
+        self.queue_rx = yield self.channel_rx.queue_declare(exclusive=True, auto_delete=True)
+        
+    @inlineCallbacks
     def start(self, *args, **kargs):
         yield AMQClient.start(self, *args, **kargs)
         self.channel_conn = yield self.channel(0)
         self.channel_rx = yield self.channel(1)
         yield self.channel_rx.channel_open()
-        self.queue_rx = yield self.channel_rx.queue_declare(exclusive=True, auto_delete=True)
+        #todo: it's not correct for server side
+        #self.queue_rx = yield self.channel_rx.queue_declare(exclusive=True, auto_delete=True)
+        yield self._declare_queue_rx()
         
         self.replies = {} # correlation_id:deferred
         yield self.channel_rx.basic_consume(queue=self.queue_rx.queue, no_ack=True, consumer_tag='qtag')
@@ -128,6 +135,16 @@ class SmppServerNodeCtrlProtocol(AMQClient):
                                             routing_key = routing_key,
                                             content = msg)
 
+#class SmppServerNodeCtrlSerialize(SmppServerNodeCtrlProtocol):
+#    def __init__(self, host, port, login, password, vhost, spec):
+#        SmppServerNodeCtrlProtocol.__init__(self, host, port, login, password, vhost, spec)
+#    
+#    def call(self, exchange, routing_key, obj):
+#        body = json.dumps(obj)
+#        res = SmppServerNodeCtrlProtocol.call(self, exchange, routing_key, body)
+#        return json.loads(res)
+        
+
 class SmppServerNode(SmppServerNodeCtrlProtocol):
 
     def __init__(self, host, port, login, password, vhost, spec, exchange, routing_key):
@@ -207,7 +224,7 @@ class SmppServerNodeCtrlService(service.Service):
                 log.msg("Disconnecting")
                 yield self.protocol.cancel()
                 log.msg("Disconnected")
-                break
+                #break
             except ConnectionRefusedError as e:
                 log.msg("Connection refused. Will try again after time-out...")
                 defer = Deferred()
@@ -216,7 +233,7 @@ class SmppServerNodeCtrlService(service.Service):
                 yield defer
             except Exception as e:
                 log.msg("Exception %s" %(repr(e),))
-                break
+                #break
 
         returnValue(None)
     

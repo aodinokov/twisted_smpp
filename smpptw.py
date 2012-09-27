@@ -7,6 +7,7 @@ from twisted.internet.defer import Deferred, succeed, fail
 from twisted.python.failure import Failure
 from twisted.python import log
 
+# todo raname to txsmpp
 #TO Fix: 
 #1. only version 34
 #!!!fixed!!! 2. internal packet filter can fail(incorrect current state) 
@@ -15,6 +16,8 @@ from twisted.python import log
 #!!!fixed(check one place now)!!!5. probably we have some problems with sequence_number
 #6. Pdu_builder is not fit very much
 #!!!fixed!!!7. add default timeout
+#7. We should filter some errors like Message Length is invalid, Invalid Command ID and so on and return result automatically
+#]
 
 
 class SmppGeneric(Protocol):
@@ -81,7 +84,7 @@ class SmppGeneric(Protocol):
                 self.sequence_number_tx_resp = sequence_number
                 if sequence_number in self.waiting_valuable:
                     d = self.waiting_valuable[sequence_number][1]
-                    del self.waiting_valuable[sequence_number]
+                    #del self.waiting_valuable[sequence_number]
                     d.callback(pdu)
                 self.smppRespPduReceived(pdu)
 
@@ -107,6 +110,11 @@ class SmppGeneric(Protocol):
         except Exception as e:
             return fail(e)
         self.waiting_valuable[self.sequence_number_tx] = (pdu, d)
+        def onRemoveDef(x):
+            if self.sequence_number_tx in self.waiting_valuable: 
+                del self.waiting_valuable[self.sequence_number_tx]
+            return x 
+        d.addBoth(onRemoveDef)
         return d
         
     def smmpRespPduSend(self, pdu):
@@ -188,10 +196,10 @@ class SmppGeneric(Protocol):
 
         def onError(reason):
             if timer.active(): timer.cancel()
-            return reason
+            return None
         def onResp(pdu_resp):
             if timer.active(): timer.cancel()
-            return None
+            return pdu_resp
 
         d.addCallbacks(onResp, onError)
         d.addBoth(self.loseConnection)
@@ -228,10 +236,10 @@ class SmppGeneric(Protocol):
         def onError(reason):
             if timer.active(): timer.cancel()
             self.loseConnection(reason)
-            #return reason
+            return reason
         def onResp(pdu_resp):
             if timer.active(): timer.cancel()
-            if pdu['header']['command_id'] != pdu_resp['header']['command_id']: 
+            if pdu['header']['command_id']+"_resp" != pdu_resp['header']['command_id']: 
                 raise Exception("invalid response")
             return pdu_resp
 
@@ -290,12 +298,12 @@ class SmppGeneric(Protocol):
         for i in self.waiting_valuable.keys():
             (pdu, d) = self.waiting_valuable[i]
             del self.waiting_valuable[i]
-            log.msg("errback for pdu %s" % (repr(pdu),))
+            log.msg("errback for val_pdu %s" % (repr(pdu),))
             d.errback(arg)
         for i in self.waiting_resp.keys():
             (pdu, d) = self.waiting_resp[i]
             del self.waiting_resp[i]
-            log.msg("errback for pdu %s" % (repr(pdu),))
+            log.msg("errback for resp_pdu %s" % (repr(pdu),))
             d.errback(arg)
     
     @staticmethod
