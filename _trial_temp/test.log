@@ -1,0 +1,48 @@
+2012-09-21 22:41:00+0400 [-] Log opened.
+2012-09-21 22:41:00+0400 [-] --> smpptw_ut.SmppTest.test_smoke_1 <--
+2012-09-21 22:41:00+0400 [-] SmppServerFactoryUt starting on 53471
+2012-09-21 22:41:00+0400 [-] Starting factory <smpptw_ut.SmppServerFactoryUt instance at 0x2093b00>
+2012-09-21 22:41:00+0400 [-] setUp finished
+2012-09-21 22:41:00+0400 [smpptw_ut.SmppServerFactoryUt] new state OPEN
+2012-09-21 22:41:00+0400 [Uninitialized] new state OPEN
+2012-09-21 22:41:00+0400 [-] created pdu {'body': {'mandatory_parameters': {'addr_npi': 0, 'interface_version': '34', 'addr_ton': 0, 'address_range': '', 'system_id': '', 'system_type': '', 'password': ''}}, 'header': {'command_status': 'ESME_ROK', 'command_length': 0, 'sequence_number': 1, 'command_id': 'bind_transmitter'}}
+2012-09-21 22:41:00+0400 [-] smmpValuablePduSendAndWaitResp
+2012-09-21 22:41:00+0400 [-] smmpValuablePduSend
+2012-09-21 22:41:00+0400 [SmppSmscUt,0,127.0.0.1] data is received '\x00\x00\x00\x17\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x004\x00\x00\x00'
+2012-09-21 22:41:00+0400 [SmppSmscUt,0,127.0.0.1] rest of the data ''
+2012-09-21 22:41:00+0400 [SmppSmscUt,0,127.0.0.1] got SMPP PDU
+2012-09-21 22:41:00+0400 [SmppSmscUt,0,127.0.0.1] serv_pdu type valuable protocol <smpptw_ut.SmppSmscUt instance at 0x20975f0> pdu {'body': {'mandatory_parameters': {'addr_npi': 'unknown', 'interface_version': '34', 'addr_ton': 'unknown', 'address_range': '', 'system_id': '', 'system_type': '', 'password': ''}}, 'header': {'command_status': 'ESME_ROK', 'command_length': 23, 'sequence_number': 1, 'command_id': 'bind_transmitter'}}
+2012-09-21 22:41:00+0400 [SmppSmscUt,0,127.0.0.1] onUnbindPdu pdu {'body': {'mandatory_parameters': {'addr_npi': 'unknown', 'interface_version': '34', 'addr_ton': 'unknown', 'address_range': '', 'system_id': '', 'system_type': '', 'password': ''}}, 'header': {'command_status': 'ESME_ROK', 'command_length': 23, 'sequence_number': 1, 'command_id': 'bind_transmitter'}}
+2012-09-21 22:41:00+0400 [SmppSmscUt,0,127.0.0.1] smmpRespPduSend
+2012-09-21 22:41:00+0400 [SmppSmscUt,0,127.0.0.1] sending SMPP PDU resp
+2012-09-21 22:41:00+0400 [SmppSmscUt,0,127.0.0.1] new state BIND_TX
+2012-09-21 22:41:00+0400 [SmppEcmeUt,client] data is received '\x00\x00\x00\x11\x80\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x01\x00'
+2012-09-21 22:41:00+0400 [SmppEcmeUt,client] rest of the data ''
+2012-09-21 22:41:00+0400 [SmppEcmeUt,client] got SMPP PDU
+2012-09-21 22:41:00+0400 [SmppEcmeUt,client] got pdu {'body': {'mandatory_parameters': {'system_id': ''}}, 'header': {'command_status': 'ESME_ROK', 'command_length': 17, 'sequence_number': 1, 'command_id': 'bind_transmitter_resp'}}
+2012-09-21 22:41:00+0400 [SmppEcmeUt,client] unbind pdu None
+2012-09-21 22:41:00+0400 [SmppEcmeUt,client] smmpValuablePduSendAndWaitResp
+2012-09-21 22:41:00+0400 [SmppEcmeUt,client] smmpValuablePduSend
+2012-09-21 22:41:00+0400 [SmppSmscUt,0,127.0.0.1] data is received '\x00\x00\x00\x10\x00\x00\x00\x06\x00\x00\x00\x00\x00\x00\x00\x02'
+2012-09-21 22:41:00+0400 [SmppSmscUt,0,127.0.0.1] rest of the data ''
+2012-09-21 22:41:00+0400 [SmppSmscUt,0,127.0.0.1] got SMPP PDU
+2012-09-21 22:41:00+0400 [SmppSmscUt,0,127.0.0.1] serv_pdu type valuable protocol <smpptw_ut.SmppSmscUt instance at 0x20975f0> pdu {'header': {'command_status': 'ESME_ROK', 'command_length': 16, 'sequence_number': 2, 'command_id': 'unbind'}}
+2012-09-21 22:41:00+0400 [SmppSmscUt,0,127.0.0.1] onUnbindPdu pdu {'header': {'command_status': 'ESME_ROK', 'command_length': 16, 'sequence_number': 2, 'command_id': 'unbind'}}
+2012-09-21 22:41:00+0400 [SmppSmscUt,0,127.0.0.1] smmpRespPduSend
+2012-09-21 22:41:00+0400 [SmppSmscUt,0,127.0.0.1] sending SMPP PDU resp
+2012-09-21 22:41:00+0400 [SmppSmscUt,0,127.0.0.1] serv_error args (<smpptw_ut.SmppSmscUt instance at 0x20975f0>, <twisted.python.failure.Failure <class 'twisted.internet.error.ConnectionDone'>>) kargs {'error': 'connectionLost'}
+2012-09-21 22:41:00+0400 [SmppSmscUt,0,127.0.0.1] connectionLost arg [Failure instance: Traceback (failure with no frames): <class 'twisted.internet.error.ConnectionDone'>: Connection was closed cleanly.
+	]
+2012-09-21 22:41:00+0400 [SmppSmscUt,0,127.0.0.1] unexpected connection loss
+2012-09-21 22:41:00+0400 [SmppSmscUt,0,127.0.0.1] new state CLOSED
+2012-09-21 22:41:00+0400 [SmppEcmeUt,client] data is received '\x00\x00\x00\x10\x80\x00\x00\x06\x00\x00\x00\x00\x00\x00\x00\x02'
+2012-09-21 22:41:00+0400 [SmppEcmeUt,client] rest of the data ''
+2012-09-21 22:41:00+0400 [SmppEcmeUt,client] got SMPP PDU
+2012-09-21 22:41:00+0400 [SmppEcmeUt,client] loseConnection arg None
+2012-09-21 22:41:00+0400 [SmppEcmeUt,client] new state CLOSED
+2012-09-21 22:41:00+0400 [SmppEcmeUt,client] unbinded
+2012-09-21 22:41:00+0400 [-] (TCP Port 53471 Closed)
+2012-09-21 22:41:00+0400 [-] Stopping factory <smpptw_ut.SmppServerFactoryUt instance at 0x2093b00>
+2012-09-21 22:41:00+0400 [SmppEcmeUt,client] connectionLost arg [Failure instance: Traceback (failure with no frames): <class 'twisted.internet.error.ConnectionDone'>: Connection was closed cleanly.
+	]
+2012-09-21 22:41:00+0400 [-] Main loop terminated.
